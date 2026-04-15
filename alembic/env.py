@@ -5,11 +5,11 @@ from sqlalchemy import engine_from_config, pool
 
 from app import models  # noqa: F401
 from app.config import get_settings
-from app.database import Base
+from app.database import Base, _normalize_database_url
 
 config = context.config
 settings = get_settings()
-config.set_main_option("sqlalchemy.url", settings.database_url)
+config.set_main_option("sqlalchemy.url", _normalize_database_url(settings.database_url))
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
