@@ -6,6 +6,8 @@ class Settings(BaseSettings):
     app_name: str = "uni4life API"
     app_version: str = "0.1.0"
     api_prefix: str = ""
+    database_url: str = "sqlite:///./uni4life.db"
+    db_echo: bool = False
 
     class Config:
         env_file = ".env"

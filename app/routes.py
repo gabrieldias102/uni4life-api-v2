@@ -1,13 +1,8 @@
-from fastapi import APIRouter, HTTPException, status
 from typing import List
 
-from app.repositories import (
-    CommentRepository,
-    ConnectionRepository,
-    PostRepository,
-    RepostRepository,
-    UserRepository,
-)
+from fastapi import APIRouter, Depends, HTTPException, status
+
+from app.deps import get_comment_service, get_post_service, get_repost_service, get_user_service
 from app.schemas import (
     CommentCreate,
     CommentRead,
@@ -25,17 +20,6 @@ from app.services import CommentService, PostService, RepostService, UserService
 
 router = APIRouter()
 
-user_repository = UserRepository()
-post_repository = PostRepository()
-comment_repository = CommentRepository()
-repost_repository = RepostRepository()
-connection_repository = ConnectionRepository()
-
-user_service = UserService(user_repository, connection_repository)
-post_service = PostService(post_repository, user_repository)
-comment_service = CommentService(comment_repository, user_repository, post_repository)
-repost_service = RepostService(repost_repository, user_repository, post_repository)
-
 
 def _handle_error(error: ValueError, not_found=False):
     if not_found:
@@ -49,11 +33,12 @@ def health():
 
 
 @router.get("/users", response_model=List[UserRead])
-def list_users():
+def list_users(user_service: UserService = Depends(get_user_service)):
     return user_service.list_users()
 
+
 @router.get("/users/{user_id}", response_model=UserRead)
-def get_user(user_id: int):
+def get_user(user_id: int, user_service: UserService = Depends(get_user_service)):
     try:
         return user_service.get_user(user_id)
     except ValueError as err:
@@ -61,7 +46,7 @@ def get_user(user_id: int):
 
 
 @router.post("/users", response_model=UserRead, status_code=status.HTTP_201_CREATED)
-def create_user(payload: UserCreate):
+def create_user(payload: UserCreate, user_service: UserService = Depends(get_user_service)):
     try:
         return user_service.create_user(payload)
     except ValueError as err:
@@ -69,7 +54,11 @@ def create_user(payload: UserCreate):
 
 
 @router.put("/users/{user_id}", response_model=UserRead)
-def update_user(user_id: int, payload: UserUpdate):
+def update_user(
+    user_id: int,
+    payload: UserUpdate,
+    user_service: UserService = Depends(get_user_service),
+):
     try:
         return user_service.update_user(user_id, payload)
     except ValueError as err:
@@ -77,7 +66,7 @@ def update_user(user_id: int, payload: UserUpdate):
 
 
 @router.delete("/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_user(user_id: int):
+def delete_user(user_id: int, user_service: UserService = Depends(get_user_service)):
     try:
         user_service.delete_user(user_id)
         return None
@@ -90,7 +79,11 @@ def delete_user(user_id: int):
     response_model=ConnectionRead,
     status_code=status.HTTP_201_CREATED,
 )
-def connect_users(user_id: int, target_id: int):
+def connect_users(
+    user_id: int,
+    target_id: int,
+    user_service: UserService = Depends(get_user_service),
+):
     try:
         return user_service.connect_users(user_id, target_id)
     except ValueError as err:
@@ -98,7 +91,7 @@ def connect_users(user_id: int, target_id: int):
 
 
 @router.get("/users/{user_id}/connections", response_model=List[ConnectionRead])
-def list_connections(user_id: int):
+def list_connections(user_id: int, user_service: UserService = Depends(get_user_service)):
     try:
         return user_service.list_connections(user_id)
     except ValueError as err:
@@ -106,7 +99,7 @@ def list_connections(user_id: int):
 
 
 @router.get("/users/{user_id}/posts", response_model=List[PostRead])
-def list_user_posts(user_id: int):
+def list_user_posts(user_id: int, post_service: PostService = Depends(get_post_service)):
     try:
         return post_service.list_posts_by_user(user_id)
     except ValueError as err:
@@ -114,12 +107,12 @@ def list_user_posts(user_id: int):
 
 
 @router.get("/posts", response_model=List[PostRead])
-def list_posts():
+def list_posts(post_service: PostService = Depends(get_post_service)):
     return post_service.list_posts()
 
 
 @router.get("/posts/{post_id}", response_model=PostRead)
-def get_post(post_id: int):
+def get_post(post_id: int, post_service: PostService = Depends(get_post_service)):
     try:
         return post_service.get_post(post_id)
     except ValueError as err:
@@ -127,7 +120,7 @@ def get_post(post_id: int):
 
 
 @router.post("/posts", response_model=PostRead, status_code=status.HTTP_201_CREATED)
-def create_post(payload: PostCreate):
+def create_post(payload: PostCreate, post_service: PostService = Depends(get_post_service)):
     try:
         return post_service.create_post(payload)
     except ValueError as err:
@@ -135,7 +128,11 @@ def create_post(payload: PostCreate):
 
 
 @router.put("/posts/{post_id}", response_model=PostRead)
-def update_post(post_id: int, payload: PostUpdate):
+def update_post(
+    post_id: int,
+    payload: PostUpdate,
+    post_service: PostService = Depends(get_post_service),
+):
     try:
         return post_service.update_post(post_id, payload)
     except ValueError as err:
@@ -143,7 +140,7 @@ def update_post(post_id: int, payload: PostUpdate):
 
 
 @router.delete("/posts/{post_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_post(post_id: int):
+def delete_post(post_id: int, post_service: PostService = Depends(get_post_service)):
     try:
         post_service.delete_post(post_id)
         return None
@@ -152,7 +149,7 @@ def delete_post(post_id: int):
 
 
 @router.get("/posts/{post_id}/comments", response_model=List[CommentRead])
-def list_post_comments(post_id: int):
+def list_post_comments(post_id: int, comment_service: CommentService = Depends(get_comment_service)):
     try:
         return comment_service.list_comments(post_id)
     except ValueError as err:
@@ -160,7 +157,11 @@ def list_post_comments(post_id: int):
 
 
 @router.post("/posts/{post_id}/comments", response_model=CommentRead, status_code=status.HTTP_201_CREATED)
-def create_comment(post_id: int, payload: CommentCreate):
+def create_comment(
+    post_id: int,
+    payload: CommentCreate,
+    comment_service: CommentService = Depends(get_comment_service),
+):
     try:
         return comment_service.create_comment(post_id, payload)
     except ValueError as err:
@@ -168,7 +169,7 @@ def create_comment(post_id: int, payload: CommentCreate):
 
 
 @router.get("/posts/{post_id}/reposts", response_model=List[RepostRead])
-def list_post_reposts(post_id: int):
+def list_post_reposts(post_id: int, repost_service: RepostService = Depends(get_repost_service)):
     try:
         return repost_service.list_reposts(post_id)
     except ValueError as err:
@@ -176,7 +177,11 @@ def list_post_reposts(post_id: int):
 
 
 @router.post("/posts/{post_id}/reposts", response_model=RepostRead, status_code=status.HTTP_201_CREATED)
-def create_repost(post_id: int, payload: RepostCreate):
+def create_repost(
+    post_id: int,
+    payload: RepostCreate,
+    repost_service: RepostService = Depends(get_repost_service),
+):
     try:
         return repost_service.create_repost(post_id, payload)
     except ValueError as err:

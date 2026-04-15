@@ -1,8 +1,31 @@
 # uni4life-api-v2
 
-Exemplo de API Python usando FastAPI para uma rede social simples.
+API Python com FastAPI para uma rede social simples.
+
+Agora a API usa PostgreSQL via SQLAlchemy e migrations com Alembic. Para producao na Vercel, a recomendacao e apontar `DATABASE_URL` para o banco Neon.
 
 ## Como executar
+
+### Configuracao de ambiente
+
+Defina a variavel `DATABASE_URL` no `.env` local e na Vercel:
+
+```env
+DATABASE_URL=postgresql+psycopg://USER:PASSWORD@HOST/DBNAME?sslmode=require
+```
+
+Se a variavel nao for definida, a aplicacao usa `sqlite:///./uni4life.db` como fallback local.
+
+### Criando as tabelas com Alembic
+
+1. Instale as dependencias:
+   ```bash
+   pip install -r requirements.txt
+   ```
+2. Execute a migration inicial:
+   ```bash
+   alembic upgrade head
+   ```
 
 ### Usando Docker
 
@@ -12,12 +35,12 @@ Exemplo de API Python usando FastAPI para uma rede social simples.
    ```
 2. Execute o container:
    ```bash
-   docker run -p 8000:8000 uni4life-api
+   docker run -p 8000:8000 --env-file .env uni4life-api
    ```
 
 ### Usando Docker Compose
 
-1. Inicie o serviço:
+1. Inicie o servico:
    ```bash
    docker compose up --build
    ```
@@ -25,13 +48,15 @@ Exemplo de API Python usando FastAPI para uma rede social simples.
 
 ## Estrutura
 
-- `app/main.py` - ponto de entrada da aplicação
-- `app/routes.py` - definição de rotas HTTP
-- `app/services.py` - lógica de negócio
-- `app/repositories.py` - armazenamento em memória e manipulação de dados
-- `app/schemas.py` - validação de payloads e modelos de resposta
-- `app/models.py` - modelos de domínio da rede social
-- `app/config.py` - configuração da aplicação
+- `app/main.py` - ponto de entrada da aplicacao
+- `app/routes.py` - definicao de rotas HTTP
+- `app/services.py` - logica de negocio
+- `app/repositories.py` - acesso ao banco de dados via SQLAlchemy
+- `app/schemas.py` - validacao de payloads e modelos de resposta
+- `app/models.py` - modelos ORM da rede social
+- `app/config.py` - configuracao da aplicacao
+- `app/database.py` - engine e sessoes do banco
+- `alembic/` - migrations versionadas
 
 ## Endpoints principais
 
@@ -53,14 +78,14 @@ Exemplo de API Python usando FastAPI para uma rede social simples.
 - `GET /posts/{post_id}/reposts`
 - `POST /posts/{post_id}/reposts`
 
-## Modelo de domínio
+## Modelo de dominio
 
-- `User` - perfis de usuário com biografia e nome de usuário
-- `Post` - publicações com conteúdo e referências a repostagens
-- `Comment` - comentários ligados a publicações
-- `Repost` - repostagens de publicações existentes
-- `Connection` - conexões entre usuários
+- `User` - perfis de usuario com biografia e nome de usuario
+- `Post` - publicacoes com conteudo e referencias a repostagens
+- `Comment` - comentarios ligados a publicacoes
+- `Repost` - repostagens de publicacoes existentes
+- `Connection` - conexoes entre usuarios
 
-## Observações
+## Observacoes
 
-Essa implementação usa armazenamento em memória para exemplificar os padrões de projeto. Em produção, você pode substituir `app/repositories.py` por repositórios que usam banco de dados relacional, NoSQL ou ORM.
+Na Vercel, configure `DATABASE_URL` em `Project Settings > Environment Variables` e faca um novo deploy apos qualquer alteracao.

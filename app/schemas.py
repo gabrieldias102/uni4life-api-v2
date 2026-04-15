@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, Field, constr
+from pydantic import BaseModel, ConfigDict, Field, constr
 
 
 class UserBase(BaseModel):
@@ -23,7 +23,7 @@ class UserRead(UserBase):
     joined_at: datetime
     updated_at: datetime
 
-    model_config = {"extra": "ignore"}
+    model_config = ConfigDict(from_attributes=True, extra="ignore")
 
 
 class ConnectionRead(BaseModel):
@@ -32,7 +32,7 @@ class ConnectionRead(BaseModel):
     connected_user_id: int
     created_at: datetime
 
-    model_config = {"extra": "ignore"}
+    model_config = ConfigDict(from_attributes=True, extra="ignore")
 
 
 class PostBase(BaseModel):
@@ -55,7 +55,7 @@ class PostRead(PostBase):
     updated_at: datetime
     repost_of: Optional[int] = None
 
-    model_config = {"extra": "ignore"}
+    model_config = ConfigDict(from_attributes=True, extra="ignore")
 
 
 class CommentCreate(BaseModel):
@@ -70,7 +70,7 @@ class CommentRead(BaseModel):
     content: str
     created_at: datetime
 
-    model_config = {"extra": "ignore"}
+    model_config = ConfigDict(from_attributes=True, extra="ignore")
 
 
 class RepostCreate(BaseModel):
@@ -83,4 +83,4 @@ class RepostRead(BaseModel):
     user_id: int
     created_at: datetime
 
-    model_config = {"extra": "ignore"}
+    model_config = ConfigDict(from_attributes=True, extra="ignore")

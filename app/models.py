@@ -1,48 +1,70 @@
-from dataclasses import dataclass
 from datetime import datetime
-from typing import Optional
+
+from sqlalchemy import CheckConstraint, DateTime, ForeignKey, String, Text, UniqueConstraint
+from sqlalchemy.orm import Mapped, mapped_column
+
+from app.database import Base
 
 
-@dataclass
-class User:
-    id: int
-    full_name: str
-    username: str
-    bio: Optional[str]
-    joined_at: datetime
-    updated_at: datetime
+class User(Base):
+    __tablename__ = "users"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    full_name: Mapped[str] = mapped_column(String(120), nullable=False)
+    username: Mapped[str] = mapped_column(String(40), nullable=False, unique=True, index=True)
+    bio: Mapped[str | None] = mapped_column(String(240), nullable=True)
+    joined_at: Mapped[datetime] = mapped_column(DateTime(timezone=False), default=datetime.utcnow, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=False),
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+        nullable=False,
+    )
 
 
-@dataclass
-class Post:
-    id: int
-    author_id: int
-    content: str
-    created_at: datetime
-    updated_at: datetime
-    repost_of: Optional[int] = None
+class Post(Base):
+    __tablename__ = "posts"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    author_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    content: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=False), default=datetime.utcnow, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=False),
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+        nullable=False,
+    )
+    repost_of: Mapped[int | None] = mapped_column(ForeignKey("posts.id", ondelete="SET NULL"), nullable=True)
 
 
-@dataclass
-class Comment:
-    id: int
-    post_id: int
-    author_id: int
-    content: str
-    created_at: datetime
+class Comment(Base):
+    __tablename__ = "comments"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    post_id: Mapped[int] = mapped_column(ForeignKey("posts.id", ondelete="CASCADE"), nullable=False, index=True)
+    author_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    content: Mapped[str] = mapped_column(String(500), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=False), default=datetime.utcnow, nullable=False)
 
 
-@dataclass
-class Repost:
-    id: int
-    post_id: int
-    user_id: int
-    created_at: datetime
+class Repost(Base):
+    __tablename__ = "reposts"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    post_id: Mapped[int] = mapped_column(ForeignKey("posts.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=False), default=datetime.utcnow, nullable=False)
 
 
-@dataclass
-class Connection:
-    id: int
-    user_id: int
-    connected_user_id: int
-    created_at: datetime
+class Connection(Base):
+    __tablename__ = "connections"
+    __table_args__ = (
+        CheckConstraint("user_id < connected_user_id", name="ck_connections_order"),
+        UniqueConstraint("user_id", "connected_user_id", name="uq_connections_pair"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    connected_user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=False), default=datetime.utcnow, nullable=False)
