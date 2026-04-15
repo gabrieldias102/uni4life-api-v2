@@ -23,22 +23,6 @@ Exemplo de API Python usando FastAPI para uma rede social simples.
    ```
 2. Acesse a API em `http://127.0.0.1:8000`
 
-### Alternativa local sem Docker
-
-1. Crie e ative um ambiente virtual:
-   ```bash
-   python -m venv .venv
-   source .venv/Scripts/activate  # Windows PowerShell: .venv\Scripts\Activate.ps1
-   ```
-2. Instale dependências:
-   ```bash
-   pip install -r requirements.txt
-   ```
-3. Inicie a API:
-   ```bash
-   uvicorn app.main:app --reload
-   ```
-
 ## Estrutura
 
 - `app/main.py` - ponto de entrada da aplicação
