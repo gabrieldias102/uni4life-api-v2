@@ -8,18 +8,8 @@ class Base(DeclarativeBase):
     pass
 
 
-def _normalize_database_url(database_url: str) -> str:
-    if database_url.startswith("postgresql+psycopg://"):
-        return database_url
-    if database_url.startswith("postgresql://"):
-        return database_url.replace("postgresql://", "postgresql+psycopg://", 1)
-    if database_url.startswith("postgres://"):
-        return database_url.replace("postgres://", "postgresql+psycopg://", 1)
-    return database_url
-
-
 settings = get_settings()
-database_url = _normalize_database_url(settings.database_url)
+database_url = settings.database_url
 
 connect_args: dict[str, object] = {}
 engine_kwargs: dict[str, object] = {
@@ -44,7 +34,5 @@ SessionLocal = sessionmaker(
 
 
 def init_db() -> None:
-    # Import models lazily so all ORM tables are registered before create_all runs.
-    from app import models  # noqa: F401
 
     Base.metadata.create_all(bind=engine)
