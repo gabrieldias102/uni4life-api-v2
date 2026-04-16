@@ -12,9 +12,12 @@ Defina a variavel `DATABASE_URL` no `.env` local e na Vercel:
 
 ```env
 DATABASE_URL=postgresql+psycopg://USER:PASSWORD@HOST/DBNAME?sslmode=require
+CORS_ALLOW_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
 ```
 
 Se a variavel nao for definida, a aplicacao usa `sqlite:///./uni4life.db` como fallback local.
+
+Se o frontend estiver em outra origem, configure `CORS_ALLOW_ORIGINS` com uma lista separada por virgula das URLs permitidas. Exemplo: `http://localhost:5173,http://127.0.0.1:5173`. Se a variavel ficar vazia, nenhum origin extra sera liberado.
 
 ### Criando as tabelas com Alembic
 
