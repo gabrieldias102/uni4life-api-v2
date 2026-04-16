@@ -41,3 +41,10 @@ SessionLocal = sessionmaker(
     autoflush=False,
     expire_on_commit=False,
 )
+
+
+def init_db() -> None:
+    # Import models lazily so all ORM tables are registered before create_all runs.
+    from app import models  # noqa: F401
+
+    Base.metadata.create_all(bind=engine)

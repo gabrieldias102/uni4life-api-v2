@@ -1,11 +1,11 @@
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, ConfigDict, Field, constr
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class UserBase(BaseModel):
-    full_name: constr(min_length=3, max_length=120)
-    username: constr(min_length=3, max_length=40)
+    full_name: str = Field(min_length=3, max_length=120)
+    username: str = Field(min_length=3, max_length=40)
     bio: Optional[str] = Field(None, max_length=240)
 
 
@@ -14,7 +14,7 @@ class UserCreate(UserBase):
 
 
 class UserUpdate(BaseModel):
-    full_name: Optional[constr(min_length=3, max_length=120)] = None
+    full_name: Optional[str] = Field(None, min_length=3, max_length=120)
     bio: Optional[str] = Field(None, max_length=240)
 
 

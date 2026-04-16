@@ -27,6 +27,8 @@ Se a variavel nao for definida, a aplicacao usa `sqlite:///./uni4life.db` como f
    alembic upgrade head
    ```
 
+Em ambientes serverless, a aplicacao agora tambem executa `create_all()` na inicializacao para garantir que o schema basico exista mesmo antes de uma migration manual. Ainda assim, Alembic continua sendo o caminho recomendado para evolucao controlada do banco.
+
 ### Usando Docker
 
 1. Construa a imagem:

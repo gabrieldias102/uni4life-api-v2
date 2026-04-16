@@ -9,7 +9,9 @@ from app.schemas import CommentCreate, PostCreate, PostUpdate, UserCreate, UserU
 
 
 def _normalize_connection_ids(user_id: int, connected_user_id: int) -> tuple[int, int]:
-    return tuple(sorted((user_id, connected_user_id)))
+    if user_id <= connected_user_id:
+        return (user_id, connected_user_id)
+    return (connected_user_id, user_id)
 
 
 class UserRepository:
