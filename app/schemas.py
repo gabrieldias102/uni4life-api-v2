@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 
 
 class UserBase(BaseModel):
@@ -10,7 +10,7 @@ class UserBase(BaseModel):
 
 
 class UserCreate(UserBase):
-    pass
+    user_uid: str = Field(min_length=1, max_length=128, validation_alias=AliasChoices("user_uid", "uid", "user_id"))
 
 
 class UserUpdate(BaseModel):
@@ -19,7 +19,7 @@ class UserUpdate(BaseModel):
 
 
 class UserRead(UserBase):
-    id: int
+    user_uid: str
     joined_at: datetime
     updated_at: datetime
 
@@ -28,8 +28,8 @@ class UserRead(UserBase):
 
 class ConnectionRead(BaseModel):
     id: int
-    user_id: int
-    connected_user_id: int
+    user_uid: str
+    connected_user_uid: str
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True, extra="ignore")
@@ -40,7 +40,11 @@ class PostBase(BaseModel):
 
 
 class PostCreate(PostBase):
-    author_id: int
+    author_uid: str = Field(
+        min_length=1,
+        max_length=128,
+        validation_alias=AliasChoices("author_uid", "user_uid", "author_id", "user_id"),
+    )
     repost_of: Optional[int] = None
 
 
@@ -50,7 +54,7 @@ class PostUpdate(BaseModel):
 
 class PostRead(PostBase):
     id: int
-    author_id: int
+    author_uid: str
     created_at: datetime
     updated_at: datetime
     repost_of: Optional[int] = None
@@ -59,14 +63,18 @@ class PostRead(PostBase):
 
 
 class CommentCreate(BaseModel):
-    author_id: int
+    author_uid: str = Field(
+        min_length=1,
+        max_length=128,
+        validation_alias=AliasChoices("author_uid", "user_uid", "author_id", "user_id"),
+    )
     content: str = Field(..., min_length=1, max_length=500)
 
 
 class CommentRead(BaseModel):
     id: int
     post_id: int
-    author_id: int
+    author_uid: str
     content: str
     created_at: datetime
 
@@ -74,13 +82,17 @@ class CommentRead(BaseModel):
 
 
 class RepostCreate(BaseModel):
-    user_id: int
+    user_uid: str = Field(
+        min_length=1,
+        max_length=128,
+        validation_alias=AliasChoices("user_uid", "user_id"),
+    )
 
 
 class RepostRead(BaseModel):
     id: int
     post_id: int
-    user_id: int
+    user_uid: str
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True, extra="ignore")

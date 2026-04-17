@@ -8,10 +8,10 @@ from app.models import Comment, Connection, Post, Repost, User
 from app.schemas import CommentCreate, PostCreate, PostUpdate, UserCreate, UserUpdate
 
 
-def _normalize_connection_ids(user_id: int, connected_user_id: int) -> tuple[int, int]:
-    if user_id <= connected_user_id:
-        return (user_id, connected_user_id)
-    return (connected_user_id, user_id)
+def _normalize_connection_uids(user_uid: str, connected_user_uid: str) -> tuple[str, str]:
+    if user_uid <= connected_user_uid:
+        return (user_uid, connected_user_uid)
+    return (connected_user_uid, user_uid)
 
 
 class UserRepository:
@@ -21,8 +21,9 @@ class UserRepository:
     def list(self) -> List[User]:
         return list(self._db.scalars(select(User).order_by(User.id)).all())
 
-    def get(self, user_id: int) -> Optional[User]:
-        return self._db.get(User, user_id)
+    def get(self, user_uid: str) -> Optional[User]:
+        statement = select(User).where(User.user_uid == user_uid)
+        return self._db.scalar(statement)
 
     def get_by_username(self, username: str) -> Optional[User]:
         statement = select(User).where(User.username == username)
@@ -31,6 +32,7 @@ class UserRepository:
     def create(self, payload: UserCreate) -> User:
         now = datetime.utcnow()
         user = User(
+            user_uid=payload.user_uid,
             full_name=payload.full_name,
             username=payload.username,
             bio=payload.bio,
@@ -42,8 +44,8 @@ class UserRepository:
         self._db.refresh(user)
         return user
 
-    def update(self, user_id: int, payload: UserUpdate) -> Optional[User]:
-        user = self.get(user_id)
+    def update(self, user_uid: str, payload: UserUpdate) -> Optional[User]:
+        user = self.get(user_uid)
         if user is None:
             return None
 
@@ -57,8 +59,8 @@ class UserRepository:
         self._db.refresh(user)
         return user
 
-    def delete(self, user_id: int) -> bool:
-        user = self.get(user_id)
+    def delete(self, user_uid: str) -> bool:
+        user = self.get(user_uid)
         if user is None:
             return False
 
@@ -71,25 +73,25 @@ class ConnectionRepository:
     def __init__(self, db: Session):
         self._db = db
 
-    def list_by_user(self, user_id: int) -> List[Connection]:
+    def list_by_user(self, user_uid: str) -> List[Connection]:
         statement = select(Connection).where(
-            or_(Connection.user_id == user_id, Connection.connected_user_id == user_id)
+            or_(Connection.user_uid == user_uid, Connection.connected_user_uid == user_uid)
         ).order_by(Connection.id)
         return list(self._db.scalars(statement).all())
 
-    def exists(self, user_id: int, connected_user_id: int) -> bool:
-        left_id, right_id = _normalize_connection_ids(user_id, connected_user_id)
+    def exists(self, user_uid: str, connected_user_uid: str) -> bool:
+        left_uid, right_uid = _normalize_connection_uids(user_uid, connected_user_uid)
         statement = select(Connection.id).where(
-            Connection.user_id == left_id,
-            Connection.connected_user_id == right_id,
+            Connection.user_uid == left_uid,
+            Connection.connected_user_uid == right_uid,
         )
         return self._db.scalar(statement) is not None
 
-    def create(self, user_id: int, connected_user_id: int) -> Connection:
-        left_id, right_id = _normalize_connection_ids(user_id, connected_user_id)
+    def create(self, user_uid: str, connected_user_uid: str) -> Connection:
+        left_uid, right_uid = _normalize_connection_uids(user_uid, connected_user_uid)
         connection = Connection(
-            user_id=left_id,
-            connected_user_id=right_id,
+            user_uid=left_uid,
+            connected_user_uid=right_uid,
             created_at=datetime.utcnow(),
         )
         self._db.add(connection)
@@ -111,7 +113,7 @@ class PostRepository:
     def create(self, payload: PostCreate) -> Post:
         now = datetime.utcnow()
         post = Post(
-            author_id=payload.author_id,
+            author_uid=payload.author_uid,
             content=payload.content,
             created_at=now,
             updated_at=now,
@@ -144,8 +146,8 @@ class PostRepository:
         self._db.commit()
         return True
 
-    def list_by_author(self, author_id: int) -> List[Post]:
-        statement = select(Post).where(Post.author_id == author_id).order_by(Post.id)
+    def list_by_author(self, author_uid: str) -> List[Post]:
+        statement = select(Post).where(Post.author_uid == author_uid).order_by(Post.id)
         return list(self._db.scalars(statement).all())
 
 
@@ -160,7 +162,7 @@ class CommentRepository:
     def create(self, post_id: int, payload: CommentCreate) -> Comment:
         comment = Comment(
             post_id=post_id,
-            author_id=payload.author_id,
+            author_uid=payload.author_uid,
             content=payload.content,
             created_at=datetime.utcnow(),
         )
@@ -178,10 +180,10 @@ class RepostRepository:
         statement = select(Repost).where(Repost.post_id == post_id).order_by(Repost.id)
         return list(self._db.scalars(statement).all())
 
-    def create(self, post_id: int, user_id: int) -> Repost:
+    def create(self, post_id: int, user_uid: str) -> Repost:
         repost = Repost(
             post_id=post_id,
-            user_id=user_id,
+            user_uid=user_uid,
             created_at=datetime.utcnow(),
         )
         self._db.add(repost)

@@ -37,10 +37,10 @@ def list_users(user_service: UserService = Depends(get_user_service)):
     return user_service.list_users()
 
 
-@router.get("/users/{user_id}", response_model=UserRead)
-def get_user(user_id: int, user_service: UserService = Depends(get_user_service)):
+@router.get("/users/{user_uid}", response_model=UserRead)
+def get_user(user_uid: str, user_service: UserService = Depends(get_user_service)):
     try:
-        return user_service.get_user(user_id)
+        return user_service.get_user(user_uid)
     except ValueError as err:
         _handle_error(err, not_found=True)
 
@@ -53,55 +53,55 @@ def create_user(payload: UserCreate, user_service: UserService = Depends(get_use
         _handle_error(err)
 
 
-@router.put("/users/{user_id}", response_model=UserRead)
+@router.put("/users/{user_uid}", response_model=UserRead)
 def update_user(
-    user_id: int,
+    user_uid: str,
     payload: UserUpdate,
     user_service: UserService = Depends(get_user_service),
 ):
     try:
-        return user_service.update_user(user_id, payload)
+        return user_service.update_user(user_uid, payload)
     except ValueError as err:
         _handle_error(err, not_found=True)
 
 
-@router.delete("/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_user(user_id: int, user_service: UserService = Depends(get_user_service)):
+@router.delete("/users/{user_uid}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_user(user_uid: str, user_service: UserService = Depends(get_user_service)):
     try:
-        user_service.delete_user(user_id)
+        user_service.delete_user(user_uid)
         return None
     except ValueError as err:
         _handle_error(err, not_found=True)
 
 
 @router.post(
-    "/users/{user_id}/connections/{target_id}",
+    "/users/{user_uid}/connections/{target_uid}",
     response_model=ConnectionRead,
     status_code=status.HTTP_201_CREATED,
 )
 def connect_users(
-    user_id: int,
-    target_id: int,
+    user_uid: str,
+    target_uid: str,
     user_service: UserService = Depends(get_user_service),
 ):
     try:
-        return user_service.connect_users(user_id, target_id)
+        return user_service.connect_users(user_uid, target_uid)
     except ValueError as err:
         _handle_error(err)
 
 
-@router.get("/users/{user_id}/connections", response_model=List[ConnectionRead])
-def list_connections(user_id: int, user_service: UserService = Depends(get_user_service)):
+@router.get("/users/{user_uid}/connections", response_model=List[ConnectionRead])
+def list_connections(user_uid: str, user_service: UserService = Depends(get_user_service)):
     try:
-        return user_service.list_connections(user_id)
+        return user_service.list_connections(user_uid)
     except ValueError as err:
         _handle_error(err, not_found=True)
 
 
-@router.get("/users/{user_id}/posts", response_model=List[PostRead])
-def list_user_posts(user_id: int, post_service: PostService = Depends(get_post_service)):
+@router.get("/users/{user_uid}/posts", response_model=List[PostRead])
+def list_user_posts(user_uid: str, post_service: PostService = Depends(get_post_service)):
     try:
-        return post_service.list_posts_by_user(user_id)
+        return post_service.list_posts_by_user(user_uid)
     except ValueError as err:
         _handle_error(err, not_found=True)
 
