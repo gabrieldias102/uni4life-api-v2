@@ -9,3 +9,6 @@ venv/
 .vscode/
 .DS_Store
 .env
+
+# Banco de dados local
+uni4life.db
