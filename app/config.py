@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     app_version: str = "0.1.0"
     api_prefix: str = ""
     database_url: str = os.getenv("DATABASE_URL", "sqlite:///./db.sqlite3")
-    #database_url: str = "sqlite:///./uni4life.db"
+
     db_echo: bool = False
     cors_allow_origins: str = ""
     cors_allow_credentials: bool = True
@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
-        extra = "ignore"
+
 
     @property
     def cors_origins_list(self) -> list[str]:
