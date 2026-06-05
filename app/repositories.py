@@ -37,6 +37,7 @@ class UserRepository:
             full_name=payload.full_name,
             username=payload.username,
             bio=payload.bio,
+            course=payload.course,
             joined_at=now,
             updated_at=now,
         )
@@ -63,6 +64,15 @@ class UserRepository:
         self._db.delete(user)
         self._db.commit()
         return True
+    
+    def list_excluding_uids(self, uids_to_exclude: List[str], limit: int = 10) -> List[User]:
+        statement = (
+            select(User)
+            .where(User.user_uid.not_in(uids_to_exclude))
+            .order_by(User.joined_at.desc()) # Sugere os mais novos primeiro
+            .limit(limit)
+        )
+        return list(self._db.scalars(statement).all())
 
 
 class ConnectionRepository:
@@ -148,10 +158,10 @@ class PostRepository:
         self._db.commit()
         return True
 
-    def list_by_author(self, author_uid: str) -> List[Post]:
+    def list_by_author_uids(self, author_uids: List[str]) -> List[Post]:
         statement = (
             select(Post)
-            .where(Post.author_uid == author_uid)
+            .where(Post.author_uid.in_(author_uids))
             .options(joinedload(Post.author)) # Agora isso vai funcionar
             .order_by(Post.created_at.desc())
         )
@@ -211,3 +221,5 @@ class RepostRepository:
         self._db.commit()
         self._db.refresh(repost)
         return repost
+    
+    
