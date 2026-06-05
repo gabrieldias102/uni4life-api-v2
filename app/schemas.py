@@ -7,6 +7,7 @@ class UserBase(BaseModel):
     full_name: str = Field(min_length=3, max_length=120)
     username: str = Field(min_length=3, max_length=40)
     bio: Optional[str] = Field(None, max_length=240)
+    course: Optional[str] = Field(None, max_length=120)
 
 class UserCreate(UserBase):
     user_uid: str = Field(min_length=1, max_length=128, validation_alias=AliasChoices("user_uid", "uid", "user_id"))
@@ -14,6 +15,7 @@ class UserCreate(UserBase):
 class UserUpdate(BaseModel):
     full_name: Optional[str] = Field(None, min_length=3, max_length=120)
     bio: Optional[str] = Field(None, max_length=240)
+    course: Optional[str] = Field(None, max_length=120)
 
 class UserRead(UserBase):
     user_uid: str
