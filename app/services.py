@@ -30,6 +30,9 @@ class UserService:
         user = self._user_repository.get(user_uid)
         if user is None:
             raise ValueError(f"Usuario com uid {user_uid} nao encontrado")
+        
+        user.post_count = len(user.posts)
+        user.connection_count = len(self._connection_repository.list_by_user(user_uid))
         return user
 
     def create_user(self, payload: UserCreate) -> User:
@@ -65,12 +68,21 @@ class UserService:
     def list_connections(self, user_uid: str) -> List[Connection]:
         self.get_user(user_uid)
         return self._connection_repository.list_by_user(user_uid)
+    
+    def get_suggestions(self, user_uid: str) -> List[User]:
+        connections = self._connection_repository.list_by_user(user_uid)
+        connected_uids = {conn.user_uid for conn in connections}
+        connected_uids.update({conn.connected_user_uid for conn in connections})
+        connected_uids.add(user_uid) 
+        
+        return self._user_repository.list_excluding_uids(list(connected_uids))
 
 
 class PostService:
-    def __init__(self, post_repository: PostRepository, user_repository: UserRepository):
+    def __init__(self, post_repository: PostRepository, user_repository: UserRepository, connection_repository: ConnectionRepository):
         self._post_repository = post_repository
         self._user_repository = user_repository
+        self._connection_repository = connection_repository
 
     def list_posts(self) -> List[Post]:
         return self._post_repository.list()
@@ -102,7 +114,16 @@ class PostService:
     def list_posts_by_user(self, author_uid: str) -> List[Post]:
         if self._user_repository.get(author_uid) is None:
             raise ValueError(f"Usuario com uid {author_uid} nao encontrado")
-        return self._post_repository.list_by_author(author_uid)
+        return self._post_repository.list_by_author_uids([author_uid])
+        
+    def get_user_feed(self, user_uid: str) -> List[Post]:
+        connections = self._connection_repository.list_by_user(user_uid)
+        feed_uids = {user_uid}
+        for conn in connections:
+            feed_uids.add(conn.user_uid)
+            feed_uids.add(conn.connected_user_uid)
+            
+        return self._post_repository.list_by_author_uids(list(feed_uids))
 
 
 class CommentService:

@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Optional
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 
-# --- User Schemas (Sem alterações) ---
+
 class UserBase(BaseModel):
     full_name: str = Field(min_length=3, max_length=120)
     username: str = Field(min_length=3, max_length=40)
@@ -19,11 +19,13 @@ class UserRead(UserBase):
     user_uid: str
     joined_at: datetime
     updated_at: datetime
+    
+    post_count: int = 0
+    connection_count: int = 0
 
     model_config = ConfigDict(from_attributes=True, extra="ignore")
 
 
-# --- Post Schemas (Alteração principal aqui) ---
 class PostBase(BaseModel):
     content: str = Field(..., min_length=1, max_length=1000)
 
@@ -40,9 +42,9 @@ class PostUpdate(BaseModel):
 
 class PostRead(PostBase):
     id: int
-    # vvvvvv A MUDANÇA MAIS IMPORTANTE ESTÁ AQUI vvvvvv
-    author: UserRead  # Trocamos 'author_uid: str' por o objeto completo do autor
-    # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    
+    author: UserRead  
+    
     created_at: datetime
     updated_at: datetime
     repost_of: Optional[int] = None
@@ -50,7 +52,7 @@ class PostRead(PostBase):
     model_config = ConfigDict(from_attributes=True, extra="ignore")
 
 
-# --- Comment Schemas (Atualizado para consistência) ---
+
 class CommentCreate(BaseModel):
     author_uid: str = Field(
         min_length=1,
@@ -62,18 +64,18 @@ class CommentCreate(BaseModel):
 class CommentRead(BaseModel):
     id: int
     post_id: int
-    author: UserRead # <-- Atualizado aqui também
+    author: UserRead 
     content: str
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True, extra="ignore")
 
 
-# --- Outros Schemas (Atualizados para consistência) ---
+
 class ConnectionRead(BaseModel):
     id: int
-    user: UserRead # <-- Atualizado
-    connected_user: UserRead # <-- Atualizado
+    user: UserRead 
+    connected_user: UserRead 
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True, extra="ignore")
@@ -88,7 +90,7 @@ class RepostCreate(BaseModel):
 class RepostRead(BaseModel):
     id: int
     post_id: int
-    user: UserRead # <-- Atualizado
+    user: UserRead 
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True, extra="ignore")
