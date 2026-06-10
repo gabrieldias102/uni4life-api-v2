@@ -25,7 +25,7 @@ def get_user_service(db: Session = Depends(get_db)) -> UserService:
 
 
 def get_post_service(db: Session = Depends(get_db)) -> PostService:
-    return PostService(PostRepository(db), UserRepository(db))
+    return PostService(PostRepository(db), UserRepository(db), ConnectionRepository(db))
 
 
 def get_comment_service(db: Session = Depends(get_db)) -> CommentService:

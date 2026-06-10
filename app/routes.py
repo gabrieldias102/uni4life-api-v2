@@ -186,3 +186,25 @@ def create_repost(
         return repost_service.create_repost(post_id, payload)
     except ValueError as err:
         _handle_error(err)
+        
+        
+@router.get("/users/{user_uid}/suggestions", response_model=List[UserRead])
+def get_user_suggestions(
+    user_uid: str,
+    user_service: UserService = Depends(get_user_service)
+):
+    try:
+        return user_service.get_suggestions(user_uid)
+    except ValueError as err:
+        _handle_error(err, not_found=True)
+
+
+@router.get("/users/{user_uid}/feed", response_model=List[PostRead])
+def get_main_feed(
+    user_uid: str,
+    post_service: PostService = Depends(get_post_service)
+):
+    try:
+        return post_service.get_user_feed(user_uid)
+    except ValueError as err:
+        _handle_error(err, not_found=True)

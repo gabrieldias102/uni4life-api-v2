@@ -15,6 +15,7 @@ class User(Base):
     full_name: Mapped[str] = mapped_column(String(120), nullable=False)
     username: Mapped[str] = mapped_column(String(40), nullable=False, unique=True, index=True)
     bio: Mapped[str | None] = mapped_column(String(240), nullable=True)
+    course: Mapped[str | None] = mapped_column(String(120), nullable=True) 
     joined_at: Mapped[datetime] = mapped_column(DateTime(timezone=False), default=datetime.utcnow, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=False),
